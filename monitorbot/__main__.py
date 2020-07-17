@@ -11,7 +11,7 @@ from .monitorbot import run
 
 
 @click.command()
-@click.option('--channel', '-c',
+@click.option('--channel',
               default=CHANNEL_ID, show_default=False,
               help=("Channel's ID (starts with `@` if public, else -100) "
                     "on which the messages will be sent.")
