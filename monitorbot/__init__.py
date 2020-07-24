@@ -26,11 +26,7 @@ if not HOSTNAME:
 assert HOSTNAME, 'Error when retrieving the hostname of the server.'
 
 # Telegram information.
-TELEGRAM_KEY = os.getenv('TELEGRAM_TOKEN')
-assert TELEGRAM_KEY, 'Telegram key for the bot not found, `.env` file is probably missing.'
-CHANNEL_ID = os.getenv('CHANNEL_ID')
-# Not used for now, using the telegram api.
-TELEGRAM_URL = f'https://api.telegram.org/bot{TELEGRAM_KEY}/sendMessage?chat_id={CHANNEL_ID}&text='
+HOOKURL = os.getenv('HOOKURL')
 
 # Logging configuration.
 # Log the DEBUG inside a file and the INFO to stderr.

@@ -1,4 +1,4 @@
 click
+pymsteams
 python-dotenv
-python-telegram-bot
 typing

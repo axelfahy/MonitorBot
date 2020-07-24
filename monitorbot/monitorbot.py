@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Telegram bot for monitoring.
+"""Bot for monitoring.
 
 This module get the wanted information and reports it.
 
@@ -10,31 +10,14 @@ from datetime import datetime
 import logging
 import time
 import subprocess
-from typing import Optional, Sequence
 
-import telegram
+import pymsteams
 
 from . import (HOSTNAME,
-               TELEGRAM_KEY,
                SLEEP_BETWEEN_MSG,
                SLEEP_TIME)
 
 LOGGER = logging.getLogger(__name__)
-
-
-def delete_messages(bot: telegram.bot, messages: Sequence[telegram.Message]) -> None:
-    """
-    Delete all the messages sent.
-
-    Parameters
-    ----------
-    bot: telegram.bot
-        Bot used to remove the messages.
-    messages : Sequence of messages
-        List of messages to delete.
-    """
-    for msg in messages:
-        bot.deleteMessage(chat_id=msg.chat.id, message_id=msg.message_id)
 
 
 def format_date(date_str: str) -> str:
@@ -56,14 +39,14 @@ def format_date(date_str: str) -> str:
     return datetime.strptime(date_str, '%Y-%m-%dT%H:%M:%S%z').strftime('%Y-%m-%d %H:%M:%S UTC')
 
 
-def run(channel: str, cmd: str, threshold: float, metric: str = 'Metric') -> None:
+def run(hookurl: str, cmd: str, threshold: float, metric: str = 'Metric') -> None:
     """
     Scan the wanted information every X minutes and report any issues on the channel.
 
     Parameters
     ----------
-    channel : str
-        Channel's ID to send the messages to.
+    hookurl : str
+        URL of the Teams webhook.
     cmd : str
         Command to execute using subprocess, should return a float.
         Symbol such as '|', '$' must be escaped using '\'. The escape character will be removed
@@ -73,13 +56,9 @@ def run(channel: str, cmd: str, threshold: float, metric: str = 'Metric') -> Non
     metric : str, default 'Metric'
         Metric being watched, used in the message to send.
     """
-    bot = telegram.Bot(token=TELEGRAM_KEY)
-    messages = []
-
     while True:
         ps = subprocess.Popen([cmd], stdout=subprocess.PIPE, shell=True)
         out = ps.communicate()[0].decode('utf-8')
-        print(out)
 
         try:
             value = float(out)
@@ -88,46 +67,33 @@ def run(channel: str, cmd: str, threshold: float, metric: str = 'Metric') -> Non
         else:
             # If RAM or SWAP above given percentage, send message.
             if value > threshold:
-                messages.append(
-                    send_message(
-                        bot,
-                        channel,
-                        f'*{HOSTNAME}*: {metric} is above threshold (*{value}*/{threshold})'))
+                msg = f'*{HOSTNAME}*: {metric} is above threshold (*{value}*/{threshold})'
+                status = send_message(hookurl, msg)
+                LOGGER.info(f'Sent message {msg} with status {status}')
                 time.sleep(SLEEP_BETWEEN_MSG)
         time.sleep(SLEEP_TIME)
 
 
-def send_message(bot: telegram.Bot, channel: str, text: str,
-                 parse_mode: str = 'Markdown') -> Optional[telegram.Message]:
+def send_message(hookurl: str, text: str) -> int:
+
     """
-    Send a message on the channel.
+    Send a message on the channel of the Teams.
 
-    Handles possible exception and return the send message.
+    The HTTP status is returned.
 
-    Parameters
+    parameters
     ----------
-    bot : telegram.Bot
-        Bot object containing the API key.
-    channel : str
-        Channel's ID to send the messages to.
+    hookurl : str
+        URL for the hook to the Teams' channel.
     text : str
-        Text to send.
-    parse_mode : str, default `Markdown`
-        Mode for the parsing.
+        text to send.
 
-    Returns
+    returns
     -------
-    telegram.Message
-        The message object from the telegram api, containing the chat and message id.
+    int
+        HTTP status from the sent message.
     """
-    try:
-        msg = bot.sendMessage(
-            chat_id=channel,
-            text=text,
-            parse_mode=parse_mode)
-    except (telegram.vendor.ptb_urllib3.urllib3.exceptions.ReadTimeoutError,
-            telegram.error.TimedOut) as e:
-        LOGGER.error(f'Error when sending message {text} on channel {channel}: {e}')
-        return None
-    else:
-        return msg
+    msg = pymsteams.connectorcard(hookurl)
+    msg.text(text)
+    msg.send()
+    return msg.last_http_status.status_code

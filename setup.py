@@ -24,8 +24,8 @@ PROJECT_URLS = {
 }
 REQUIRES = [
     'Click',
+    'pymsteams',
     'python-dotenv',
-    'python-telegram-bot',
     'typing'
 ]
 CLASSIFIERS = [
