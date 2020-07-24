@@ -2,8 +2,7 @@
 
 > MonitorBot, the bot that warns you when your server overloads!
 
-The telegram key (`TELEGRAM_TOKEN`) and the channel id (`CHANNEL_ID`) are stored inside a `.env` file and loaded using the `load_dotenv()` function from the `python-dotenv` package.
-
+Send a message on the Teams' channel when a warning is raised.
 
 ## Installation
 
@@ -17,7 +16,7 @@ pip install -e .
 
 ## Usage
 
-The program is available as a CLI. Possible options are the Telegram's channel, the command to run, the threshold and the metric to use. The command must return a number, and if the number is higher than the threshold, an alert will be sent to the channel. Characters such as `|` and `$` must be escaped and the command should not contain `\` (unless for escaping), since it will be removed afterwards.
+The program is available as a CLI. Possible options are the Team's hookurl, the command to run, the threshold and the metric to use. The command must return a number, and if the number is higher than the threshold, an alert will be sent to the channel. Characters such as `|` and `$` must be escaped and the command should not contain `\` (unless for escaping), since it will be removed afterwards.
 
 Example to send a warning when more than 80% of RAM usage is reached:
 
