@@ -7,14 +7,14 @@ all: test
 build-base:
 	docker build -f Dockerfile.base -t monitorbot-base .
 
-build: build-base
-	docker build -f Dockerfile.code -t monitorbot-code .
+build:
+	docker-compose build
 
 run: build
-	docker run -d \
-	--env HOSTNAME=$(shell hostname) \
-	--restart=always \
-	-v /var/log:/code/logs monitorbot-code
+	HOSTNAME=$(shell hostname) docker-compose up -d
+
+stop:
+	docker-compose down -v
 
 build-python:
 	python setup.py sdist bdist_wheel

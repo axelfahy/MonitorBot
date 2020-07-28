@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  monitoring:
+    build:
+      context: .
+      dockerfile: Dockerfile.code
+    environment:
+      HOSTNAME: ${HOSTNAME}
+    volumes:
+      - /var/log:/code/logs
+
+    depends_on:
+      - base
+    entrypoint: ["monitorbot"]
+
+  base:
+    build:
+      context: .
+      dockerfile: Dockerfile.base
